@@ -1,6 +1,6 @@
 
 param (
-	[string]$install_that = ""
+	[string]$install_that = $args[0]
 )
 
 
@@ -26,7 +26,11 @@ function DownloadFile {
 
 	$output_path = [System.IO.Path]::Combine($env:USERPROFILE, "Downloads", $file_name)
 	Write-Host "output_path: $output_path"
-	return $output_path # Remember to remove this line
+	if (Test-Path -Path $output_path) {
+		Write-Host "Setup is already installed"
+		return $output_path
+	# return $output_path # Remember to remove this line
+	# Im thankfull for the comment purge that happened
 
 	$methods = @(
 		@{Name = "Invoke-WebRequest"; Command = {Invoke-WebRequest -Uri $url -OutFile $output_path -ErrorAction Stop}},
@@ -221,7 +225,7 @@ $ignoreSetups = @(
 	"setup_vscode.exe", 
 	"sysinternals.zip", 
 	"x32-64dbg.zip", 
-	#"setup_msys2.exe",
+	"setup_msys2.exe",
 	"setup_processHacker2.exe",
 	"git.exe"
 )
@@ -231,9 +235,11 @@ $executeAfterAll = {
 }
 
 # Check if we are installing something specific, if yes, keep it
-if($install_that -ne "") {
+if (-not [string]::IsNullOrEmpty($install_that)) {
+	#Write-Host "install_that is: $install_that"
+	# WHY ITS SO HARD TO FIGURE OUT IF ITS NULL/EMPRY STRING IN THIS LAMGINA OMG
 	$ignoreSetups = $ignoreSetups | Where-Object { $_ -notlike "*$install_that*" }
-}
+} 
 
 foreach ($downloadParam in $downloadList) {
 
@@ -285,3 +291,4 @@ foreach ($downloadParam in $downloadList) {
 foreach ($command in $executeAfterAll) {
 	& $command
 }
+
