@@ -231,7 +231,7 @@ $executeAfterAll = {
 }
 
 # Check if we are installing something specific, if yes, keep it
-if($install_that -nq "") {
+if($install_that -ne "") {
 	$ignoreSetups = $ignoreSetups | Where-Object { $_ -notlike "*$install_that*" }
 }
 
