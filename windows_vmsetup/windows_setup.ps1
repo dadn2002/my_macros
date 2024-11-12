@@ -1,4 +1,9 @@
 
+param (
+	[string]$install_that = ""
+)
+
+
 function DownloadResponse {
 	param (
 		[bool]$status,
@@ -21,7 +26,7 @@ function DownloadFile {
 
 	$output_path = [System.IO.Path]::Combine($env:USERPROFILE, "Downloads", $file_name)
 	Write-Host "output_path: $output_path"
-	#return $output_path # Remember to remove this line
+	return $output_path # Remember to remove this line
 
 	$methods = @(
 		@{Name = "Invoke-WebRequest"; Command = {Invoke-WebRequest -Uri $url -OutFile $output_path -ErrorAction Stop}},
@@ -192,12 +197,23 @@ $downloadList = @(
 		Url 				= "https://github.com/winsiderss/si-builds/releases/download/3.1.24305/systeminformer-3.1.24305-canary-setup.exe";
 		OutFileName			= "setup_processHacker2.exe";
 		PreInstallCommand 	= "";
-		InstallCommand 		= "-silent -norestart";
+		InstallCommand 		= "-quiet -norestart";
 		AddToPath 			= $false;
 		ExecuteSetup 		= $true;
 		FreeSpaceNeeded 	= 0
+	},
+	@{	# Git 
+		Url 				= "https://github.com/git-for-windows/git/releases/download/v2.47.0.windows.2/Git-2.47.0.2-64-bit.exe";
+		OutFileName			= "git.exe";
+		PreInstallCommand 	= "";
+		InstallCommand 		= '-ArgumentList "/SILENT" -norestart';
+		AddToPath 			= $false;
+		ExecuteSetup 		= $true;
+		FreeSpaceNeeded 	= 0
+
 	}
 )
+
 $ignoreSetups = @(
 	"setup_python.exe", 
 	"setup_winsdk.exe", 
@@ -205,8 +221,19 @@ $ignoreSetups = @(
 	"setup_vscode.exe", 
 	"sysinternals.zip", 
 	"x32-64dbg.zip", 
-	"setup_msys2.exe"
+	#"setup_msys2.exe",
+	"setup_processHacker2.exe",
+	"git.exe"
 )
+
+$executeAfterAll = {
+	#winget install --id Git.Git -e --source winget
+}
+
+# Check if we are installing something specific, if yes, keep it
+if($install_that -nq "") {
+	$ignoreSetups = $ignoreSetups | Where-Object { $_ -notlike "*$install_that*" }
+}
 
 foreach ($downloadParam in $downloadList) {
 
@@ -253,4 +280,8 @@ foreach ($downloadParam in $downloadList) {
 		Write-Host "Failed to download $($downloadParam.OutFileName)"
 		Write-Host "Error: $_"
 	}
+}
+
+foreach ($command in $executeAfterAll) {
+	& $command
 }
