@@ -91,9 +91,12 @@ function UnzipFile {
 		[bool]$doAddToPath
 	)
 	
-	if (-not (Test-Path -Path $destinationPath)) {
-		New-Item -ItemType Directory -Path $destinationPath *>&1 | Out-Null
+	if (Test-Path -Path $destinationPath) {
+		Write-Host "Extract file already exists in $destinationPath"
+		return
 	}
+
+	New-Item -ItemType Directory -Path $destinationPath *>&1 | Out-Null
 
 	try {
 		Write-Host "Expanding arquive $zipPath to $destinationPath"
