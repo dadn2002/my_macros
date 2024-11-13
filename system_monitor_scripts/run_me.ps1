@@ -1,9 +1,9 @@
-
 param (
-    [bool]$do_ignore = $true
+    [bool]$ignore = $false
 )
 
 $setup_program_name = "windows_setup.ps1"
+$setup_program_name = Join-Path -Path (Get-Location) -ChildPath $setup_program_name
 $python_invokation = ""
 
 $list_of_languages_needed = @(
@@ -14,9 +14,9 @@ $list_of_languages_needed = @(
 )
 
 $list_of_programs_needed = @(
-    "vscode";
-    "sysinternals";
-    "processHacker"
+    #"vscode";
+    "sysinternals"
+    #"processHacker"
 )
 
 function check_installation {
@@ -63,7 +63,7 @@ function check_if_setup_file_exists {
 function do_cleanup {
     Write-Host "Removing $setup_program_name from directory"
     try {
-        Remove-Item -Path (Join-Path "..\" $setup_program_name)
+        Remove-Item -Path ($setup_program_name)
     } catch {
         Write-Host "Failed to remove $setup_program_name with error $_"
     }
@@ -83,14 +83,12 @@ function check_if_program_exists {
     
     if ($is_installed -eq $false) {
         Write-Host "$program is not installed, attempting to do it"
-        
-        $fullPath = Join-Path -Path (Get-Location) -ChildPath $setup_program_name
 
-        Write-Host "Running setup from: $fullPath with args $program"
-        if (Test-Path $fullPath) {
-            Start-Process -FilePath "powershell.exe" -ArgumentList "-File $fullPath $program" -NoNewWindow -Wait -ErrorAction Stop
+        Write-Host "Running setup from: $setup_program_name with args $program"
+        if (Test-Path $setup_program_name) {
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-File $setup_program_name $program" -NoNewWindow -Wait -ErrorAction Stop
         } else {
-            Write-Host "The setup program was not found: $fullPath"
+            Write-Host "The setup program was not found: $setup_program_name"
         }
 
         $install_success = check_installation -command $program -arguments $arguments
@@ -150,6 +148,8 @@ function download_repo_locally {
     Remove-Item -Path "main.zip"
     Rename-Item -Path (Join-Path $destinationFolder "system_monitor-main") "system_monitor"
     Set-Location -Path (Join-Path $destinationFolder "system_monitor")
+    Remove-Item -Path (Join-Path "data" "network_data.txt")
+    Remove-Item -Path (Join-Path "graphs" "graph.html")
     Write-Host "$destinationFolder"
 }
 
@@ -164,9 +164,9 @@ function main {
         check_if_program_exists -program $things_we_might_need.program -arguments $things_we_might_need.arguments > $null
     }
 
-    if ($do_ignore -eq $false) {
+    if ($ignore -eq $false) {
         foreach ($programs_we_need in $list_of_programs_needed){
-            Start-Process -FilePath $setup_program_name -ArgumentList $programs_we_need -NoNewWindow -Wait -ErrorAction Stop
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-File $setup_program_name $programs_we_need" -NoNewWindow -Wait -ErrorAction Stop
         }
     }
 
@@ -176,6 +176,7 @@ function main {
     Write-Host "Clonning the repo locally"
     download_repo_locally
     
+    Write-Host "Attempting again to install requirements.txt"
     $pip_success = install_python_requirements # You cant place functions inside comparations
     if ($pip_success -eq $false) {
         return 0 > $null
@@ -196,15 +197,13 @@ function main {
 
     Write-Host "Initializing webserver for files download"
     $ip_data = ipconfig; 
-    $IPv4 = ($ip_data | Select-String "IPv4 Address" | ForEach-Object { $_.Line -replace "^.*:\s*" }).Trim(); 
-    $IPv6Line = ($ip_data | Select-String "IPv6 Address" | Select-Object -First 1).Line; 
-    $IPv6 = ($IPv6Line -replace "IPv6 Address.*?:\s*", "").Trim(); 
+    $IPv4 = ($ip_data | Select-String "IPv4 Address" | ForEach-Object { $_.Line -replace "^.:\s" }).Trim(); 
+    $IPv6Line = ($ip_data | Select-String "Link-local IPv6 Address" | Select-Object -First 1).Line; 
+    $IPv6 = ($IPv6Line -replace "IPv6 Address.?:\s", "").Trim(); 
     Write-Host "IPv4 = $IPv4, IPv6 = $IPv6"
 
     Write-Host "Download data with:"
     Write-Host "curl http://[$IPv6]:8000/data/network_data.txt"
-    Write-Host "For bash importation:"
-    Write-Host 'curl http://[$IPv6]:8000/data/network_data.txt -o "network_data_$(date +%y%m%d%H%M%S).txt"'
 
     IEX "$python_invokation -m http.server"
     
