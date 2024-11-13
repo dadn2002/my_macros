@@ -95,6 +95,7 @@ function UnzipFile {
 	}
 
 	try {
+		Write-Host "Expanding arquive $zipPath to $destinationPath"
 		Expand-Archive -Path $zipPath -DestinationPath $destinationPath -Force *>&1 | Out-Null
 		Write-Host "Unzipped $zipPath to $destinationPath"
 		if ($doAddToPath) {
