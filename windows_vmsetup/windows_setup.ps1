@@ -30,6 +30,7 @@ function DownloadFile {
 		Write-Host "Setup is already installed"
 		return $output_path
 	}
+	Write-Host "Could not find file in $output_path, trying to download"
 	# return $output_path # Remember to remove this line
 	# Im thankfull for the comment purge that happened
 
