@@ -3,7 +3,8 @@ param (
 )
 
 $setup_program_name = "windows_setup.ps1"
-$setup_program_name = Join-Path -Path (Get-Location) -ChildPath $setup_program_name
+Clear-DnsClientCache
+$setup_code = Invoke-WebRequest -Uri https://raw.githubusercontent.com/dadn2002/my_macros/main/windows_vmsetup/windows_setup.ps1 -UseBasicParsing
 $python_invokation = ""
 
 $list_of_languages_needed = @(
@@ -40,26 +41,7 @@ function check_installation {
     return $true
 }
 
-function check_if_setup_file_exists {
-    $setup_file_path = $setup_program_name
-    if (Test-Path -Path $setup_file_path) {
-        Write-Host "The file '$setup_file_path' exists in the same directory."
-    } else {
-        Write-Host "The file '$setup_file_path' does not exist in the same directory."
-        Write-Host "Attempting to download from github/dadn2002"
-        try {
-            Clear-DnsClientCache
-            Invoke-WebRequest -OutFile windows_setup.ps1 -Uri https://raw.githubusercontent.com/dadn2002/my_macros/main/windows_vmsetup/windows_setup.ps1
-            Write-Host "Downloaded with success"
-        } catch {
-            Write-Host "Failed to download setup file"
-            return $false
-        }
-    }
-
-    return $true
-}
-
+function check_if_setup_file_exist
 function do_cleanup {
     Write-Host "Removing $setup_program_name from directory"
     try {
@@ -154,8 +136,7 @@ function download_repo_locally {
 }
 
 function main {
-    $setup_script_downloaded = check_if_setup_file_exists
-    if ($setup_script_downloaded -eq $false) {
+    if (-not $setup_code) {
         Write-Host "Failed to find/download setup file, closing program"
         return $false
     }
