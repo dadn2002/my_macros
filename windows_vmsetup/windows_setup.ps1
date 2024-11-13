@@ -133,7 +133,7 @@ $downloadList = @(
 		Url 				= "https://www.python.org/ftp/python/3.12.2/python-3.12.2-amd64.exe"; 
 		OutFileName			= "setup_python.exe"; 
 		PreInstallCommand 	= $null;
-		InstallCommand 		= "/quiet InstallAllUsers=1 PrependPath=1 -NoNewWindow";
+		InstallCommand 		= "/quiet InstallAllUsers=0 PrependPath=1 -NoNewWindow";
 		AddToPath 			= $false;
 		ExecuteSetup 		= $true;
 		FreeSpaceNeeded 	= 0
