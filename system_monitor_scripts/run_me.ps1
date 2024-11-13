@@ -188,11 +188,25 @@ function main {
     
     do_cleanup
 
-    pause
     Write-Host "Attempt to execute the programs for the first time"
     & $python_invokation "extract_data.py"
     & $python_invokation "main.py"
 
+    Clear-Host
+
+    Write-Host "Initializing webserver for files download"
+    $ip_data = ipconfig; 
+    $IPv4 = ($ip_data | Select-String "IPv4 Address" | ForEach-Object { $_.Line -replace "^.*:\s*" }).Trim(); 
+    $IPv6Line = ($ip_data | Select-String "IPv6 Address" | Select-Object -First 1).Line; 
+    $IPv6 = ($IPv6Line -replace "IPv6 Address.*?:\s*", "").Trim(); 
+    Write-Host "IPv4 = $IPv4, IPv6 = $IPv6"
+
+    Write-Host "Download data with:"
+    Write-Host "curl http://[$IPv6]:8000/data/network_data.txt"
+    Write-Host "For bash importation:"
+    Write-Host 'curl http://[$IPv6]:8000/data/network_data.txt -o "network_data_$(date +%y%m%d%H%M%S).txt"'
+
+    IEX "$python_invokation -m http.server"
     
 }
 
