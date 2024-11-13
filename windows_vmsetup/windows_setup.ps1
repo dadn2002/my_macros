@@ -243,7 +243,6 @@ if (-not [string]::IsNullOrEmpty($install_that)) {
 } 
 
 foreach ($downloadParam in $downloadList) {
-	Write-Host "Initializing install_setup of $($downloadParam.OutFileName)"
 	$skipInstallation = $false
 	foreach ($ignoreSetup in $ignoreSetups) {
 		if ($ignoreSetup -eq $downloadParam.OutFileName) {
@@ -255,6 +254,7 @@ foreach ($downloadParam in $downloadList) {
 		continue
 	}
 
+	Write-Host "Initializing install_setup of $($downloadParam.OutFileName)"
 	try {
 		$output_path = DownloadFile -url $downloadParam.Url -file_name $downloadParam.OutFileName # System.String besides Download file output var being defined as System.IO.Path
 		if (-not $downloadParam.ExecuteSetup) {
