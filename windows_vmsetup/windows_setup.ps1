@@ -258,10 +258,6 @@ foreach ($downloadParam in $downloadList) {
 	Write-Host "Initializing install_setup of $($downloadParam.OutFileName)"
 	try {
 		$output_path = DownloadFile -url $downloadParam.Url -file_name $downloadParam.OutFileName # System.String besides Download file output var being defined as System.IO.Path
-		if (-not $downloadParam.ExecuteSetup) {
-			Write-Host "Configured to not run installer of $($downloadParam.OutFileName)"
-			continue
-		}
 		
 		$FreeDiskSpace = (Get-PSDrive C).Free / 1GB
 		if ($downloadParam.FreeSpaceNeeded -gt $FreeDiskSpace) {
@@ -276,6 +272,12 @@ foreach ($downloadParam in $downloadList) {
 				Remove-Item -Path $output_path -Force
 				continue
 			}
+
+			if (-not $downloadParam.ExecuteSetup) {
+				Write-Host "Configured to not run installer of $($downloadParam.OutFileName)"
+				continue
+			}
+
 			InstallationRoutine -setup_path $output_path -command $downloadParam.InstallCommand
 			if ($downloadParam.DoAfterInstallation) {
 				& $downloadParam.DoAfterInstallation
