@@ -29,6 +29,7 @@ function DownloadFile {
 	if (Test-Path -Path $output_path) {
 		Write-Host "Setup is already installed"
 		return $output_path
+	}
 	# return $output_path # Remember to remove this line
 	# Im thankfull for the comment purge that happened
 
