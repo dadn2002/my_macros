@@ -271,7 +271,7 @@ foreach ($downloadParam in $downloadList) {
 
 		if ($output_path) {
 			if ($downloadParam.PreInstallCommand -eq "unzip") {
-				$destinationPath = [System.IO.Path]::Combine($env:USERPROFILE, "Desktop", $downloadParam.OutFileNameSplit('.')[0])
+				$destinationPath = [System.IO.Path]::Combine($env:USERPROFILE, "Desktop", $downloadParam.OutFileName.Split('.')[0])
 				UnzipFile -zipPath $output_path -destinationPath $destinationPath -doAddToPath $downloadParam.AddToPath
 				Remove-Item -Path $output_path -Force
 				continue
